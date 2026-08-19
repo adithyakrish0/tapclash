@@ -1,6 +1,6 @@
-// In-memory store for challenges
-const challenges = new Map();
-let challengeCounter = 1;
+const { Redis } = require('@upstash/redis');
+
+const redis = Redis.fromEnv();
 
 module.exports = async (req, res) => {
   // CORS headers
@@ -20,7 +20,9 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing user_id or score' });
       }
       
-      const challengeId = challengeCounter++;
+      // Generate challenge ID
+      const challengeId = await redis.incr('challenge_counter');
+      
       const challenge = {
         id: challengeId,
         challenger_id: user_id,
@@ -30,7 +32,8 @@ module.exports = async (req, res) => {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       };
       
-      challenges.set(challengeId, challenge);
+      // Store challenge with 24h expiry
+      await redis.set(`challenge:${challengeId}`, challenge, { ex: 86400 });
       
       return res.status(200).json({
         challenge_id: challengeId,
@@ -52,15 +55,15 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing challenge id' });
       }
       
-      const challenge = challenges.get(parseInt(id));
+      const challenge = await redis.get(`challenge:${id}`);
       
       if (!challenge) {
-        return res.status(404).json({ error: 'Challenge not found' });
+        return res.status(404).json({ error: 'Challenge not found or expired' });
       }
       
       // Check if expired
       if (new Date(challenge.expires_at) < new Date()) {
-        challenges.delete(parseInt(id));
+        await redis.del(`challenge:${id}`);
         return res.status(404).json({ error: 'Challenge expired' });
       }
       

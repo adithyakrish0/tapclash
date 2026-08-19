@@ -1,6 +1,6 @@
-// In-memory store (resets on cold starts, fine for MVP)
-// For production, use Vercel KV or a database
-const scores = new Map();
+const { Redis } = require('@upstash/redis');
+
+const redis = Redis.fromEnv();
 
 // Anti-cheat constants
 const MAX_TAPS = 150;
@@ -15,11 +15,6 @@ function validateScore(score, gameDuration, userId) {
   const tapsPerSecond = score / gameDuration;
   if (tapsPerSecond > MAX_TAPS_PER_SECOND) return { valid: false, reason: 'Too fast (auto-clicker?)' };
   if (score > 120) return { valid: false, reason: 'Exceeds human limit' };
-  
-  // Rate limit check
-  const userScores = scores.get(userId) || [];
-  const recentGames = userScores.filter(s => Date.now() - s.timestamp < 60000);
-  if (recentGames.length >= MAX_GAMES_PER_MINUTE) return { valid: false, reason: 'Slow down!' };
   
   return { valid: true };
 }
@@ -47,26 +42,44 @@ module.exports = async (req, res) => {
         return res.status(403).json({ error: validation.reason });
       }
       
-      // Store score
-      const userScores = scores.get(user_id) || [];
-      const newScore = {
-        score,
+      // Get existing user data
+      const userData = await redis.get(`user:${user_id}`) || {
         username: username || 'Anonymous',
-        game_duration: game_duration || 10,
-        timestamp: Date.now()
+        best_score: 0,
+        games_played: 0,
+        scores: []
       };
-      userScores.push(newScore);
-      scores.set(user_id, userScores);
+      
+      // Update user data
+      userData.username = username || userData.username;
+      userData.games_played += 1;
+      userData.scores.push(score);
+      
+      // Keep only last 100 scores per user
+      if (userData.scores.length > 100) {
+        userData.scores = userData.scores.slice(-100);
+      }
       
       // Calculate best score
-      const bestScore = Math.max(...userScores.map(s => s.score));
+      const bestScore = Math.max(...userData.scores);
+      const isNewBest = score > userData.best_score;
+      userData.best_score = bestScore;
+      
+      // Save to Redis
+      await redis.set(`user:${user_id}`, userData);
+      
+      // Update leaderboard sorted set (for global rankings)
+      await redis.zadd('leaderboard', { score: bestScore, member: user_id });
+      
+      // Store username mapping
+      await redis.set(`username:${user_id}`, username || 'Anonymous');
       
       return res.status(200).json({
         success: true,
         score,
         best_score: bestScore,
-        games_played: userScores.length,
-        message: score === bestScore ? '🎉 New personal best!' : 'Keep trying!'
+        games_played: userData.games_played,
+        message: isNewBest ? '🎉 New personal best!' : 'Keep trying!'
       });
     } catch (error) {
       console.error('Error:', error);
@@ -81,13 +94,12 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing userId' });
       }
       
-      const userScores = scores.get(userId) || [];
-      const bestScore = userScores.length > 0 ? Math.max(...userScores.map(s => s.score)) : 0;
+      const userData = await redis.get(`user:${userId}`);
       
       return res.status(200).json({
         user_id: userId,
-        best_score: bestScore,
-        games_played: userScores.length
+        best_score: userData?.best_score || 0,
+        games_played: userData?.games_played || 0
       });
     } catch (error) {
       console.error('Error:', error);

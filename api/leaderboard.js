@@ -1,6 +1,6 @@
-// Import scores from scores module (shared in-memory store)
-// In production, use Vercel KV or a database
-const scores = new Map();
+const { Redis } = require('@upstash/redis');
+
+const redis = Redis.fromEnv();
 
 module.exports = async (req, res) => {
   // CORS headers
@@ -16,32 +16,32 @@ module.exports = async (req, res) => {
     try {
       const limit = Math.min(parseInt(req.query.limit) || 50, 100);
       
-      // Calculate best scores for all users
+      // Get top scores from sorted set (highest first)
+      const topUsers = await redis.zrange('leaderboard', 0, limit - 1, { rev: true, withScores: true });
+      
       const leaderboard = [];
-      for (const [userId, userScores] of scores.entries()) {
-        if (userScores.length === 0) continue;
+      
+      // Process results (alternating member, score pairs)
+      for (let i = 0; i < topUsers.length; i += 2) {
+        const userId = topUsers[i];
+        const bestScore = topUsers[i + 1];
         
-        const bestScore = Math.max(...userScores.map(s => s.score));
-        const username = userScores[userScores.length - 1]?.username || 'Anonymous';
+        // Get username
+        const username = await redis.get(`username:${userId}`) || 'Anonymous';
+        
+        // Get games played
+        const userData = await redis.get(`user:${userId}`);
         
         leaderboard.push({
+          rank: leaderboard.length + 1,
           user_id: userId,
           username,
           best_score: bestScore,
-          games_played: userScores.length
+          games_played: userData?.games_played || 0
         });
       }
       
-      // Sort by best score descending
-      leaderboard.sort((a, b) => b.best_score - a.best_score);
-      
-      // Take top N and add rank
-      const topScores = leaderboard.slice(0, limit).map((entry, index) => ({
-        rank: index + 1,
-        ...entry
-      }));
-      
-      return res.status(200).json({ leaderboard: topScores });
+      return res.status(200).json({ leaderboard });
     } catch (error) {
       console.error('Error:', error);
       return res.status(500).json({ error: 'Server error' });

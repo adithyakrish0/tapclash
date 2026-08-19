@@ -12,7 +12,15 @@ function GameScreen({ onEnd, challenge }) {
   const gameRef = useRef(null)
   const startTimeRef = useRef(null)
   const timerRef = useRef(null)
+  const scoreRef = useRef(0)
   const popupIdRef = useRef(0)
+  const onEndRef = useRef(onEnd)
+  const endedRef = useRef(false)
+
+  // Keep onEnd ref updated
+  useEffect(() => {
+    onEndRef.current = onEnd
+  }, [onEnd])
 
   // Countdown before game starts
   useEffect(() => {
@@ -22,6 +30,7 @@ function GameScreen({ onEnd, challenge }) {
     } else if (!gameStarted) {
       setGameStarted(true)
       startTimeRef.current = Date.now()
+      endedRef.current = false
 
       // Start the game timer
       timerRef.current = setInterval(() => {
@@ -29,15 +38,21 @@ function GameScreen({ onEnd, challenge }) {
         const remaining = Math.max(0, GAME_DURATION - elapsed)
         setTimeLeft(Math.ceil(remaining))
 
-        if (remaining <= 0) {
+        if (remaining <= 0 && !endedRef.current) {
+          endedRef.current = true
           clearInterval(timerRef.current)
-          onEnd(score)
+          timerRef.current = null
+          // Use ref for latest score
+          onEndRef.current(scoreRef.current)
         }
-      }, 100)
+      }, 50)
     }
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
     }
   }, [countdown, gameStarted])
 
@@ -49,7 +64,10 @@ function GameScreen({ onEnd, challenge }) {
     if (gameRef.current && now - gameRef.current < 30) return
     gameRef.current = now
 
-    setScore(prev => prev + 1)
+    // Update both state and ref
+    const newScore = scoreRef.current + 1
+    scoreRef.current = newScore
+    setScore(newScore)
 
     // Add score popup
     const id = popupIdRef.current++
@@ -75,7 +93,6 @@ function GameScreen({ onEnd, challenge }) {
     const handleKeyDown = (e) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault()
-        // Simulate tap on the button
         const btn = document.querySelector('.tap-button')
         if (btn) btn.click()
       }

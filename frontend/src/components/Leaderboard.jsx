@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Vercel serverless functions are at the same domain under /api
+const API_BASE = ''
 
 function Leaderboard({ onBack, userId }) {
   const [leaderboard, setLeaderboard] = useState([])
@@ -13,7 +14,7 @@ function Leaderboard({ onBack, userId }) {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/leaderboard?limit=50`)
+      const res = await fetch('/api/leaderboard?limit=50')
       const data = await res.json()
       setLeaderboard(data.leaderboard || [])
     } catch (err) {

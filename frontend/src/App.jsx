@@ -4,7 +4,8 @@ import GameScreen from './components/GameScreen'
 import ResultsScreen from './components/ResultsScreen'
 import Leaderboard from './components/Leaderboard'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Vercel serverless functions are at the same domain under /api
+const API_BASE = ''
 
 function App() {
   const [screen, setScreen] = useState('start') // start, playing, results, leaderboard
@@ -56,7 +57,7 @@ function App() {
 
   const fetchChallenge = async (challengeId) => {
     try {
-      const res = await fetch(`${API_BASE}/api/challenges/${challengeId}`)
+      const res = await fetch(`/api/challenges?id=${challengeId}`)
       if (res.ok) {
         const data = await res.json()
         setChallenge(data)
@@ -77,15 +78,14 @@ function App() {
 
     // Submit score to backend
     try {
-      const res = await fetch(`${API_BASE}/api/scores`, {
+      const res = await fetch('/api/scores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: userId,
           username,
           score: finalScore,
-          game_duration: 10,
-          ip: null
+          game_duration: 10
         })
       })
       const data = await res.json()
@@ -105,7 +105,7 @@ function App() {
 
   const handleShareChallenge = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/challenges`, {
+      const res = await fetch('/api/challenges', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

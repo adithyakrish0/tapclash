@@ -137,8 +137,27 @@ function App() {
     }
   }
 
+  // Floating particles
+  const Particles = () => (
+    <div className="particles">
+      {Array.from({ length: 20 }, (_, i) => (
+        <div
+          key={i}
+          className="particle"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 15}s`,
+            animationDuration: `${10 + Math.random() * 10}s`,
+            background: ['#8b5cf6', '#3b82f6', '#ec4899', '#06b6d4'][Math.floor(Math.random() * 4)]
+          }}
+        />
+      ))}
+    </div>
+  )
+
   return (
     <div className="app">
+      <Particles />
       {screen === 'start' && (
         <StartScreen
           onStart={handleStartGame}

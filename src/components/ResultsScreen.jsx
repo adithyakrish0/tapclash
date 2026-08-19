@@ -2,80 +2,108 @@ import React, { useEffect, useState } from 'react'
 
 function ResultsScreen({ score, bestScore, onPlayAgain, onShareChallenge, onShowLeaderboard, challenge }) {
   const [copied, setCopied] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const isNewBest = score === bestScore && score > 0
 
-  // Determine message based on score
   const getMessage = () => {
     if (challenge && score > challenge.challenger_score) {
-      return `🎉 You beat ${challenge.challenger_name}!`
+      return `🎉 YOU BEAT ${challenge.challenger_name}!`
     }
-    if (score >= 100) return '🔥 Insane! You might be a robot!'
-    if (score >= 80) return '🚀 Superhuman speed!'
-    if (score >= 60) return '⚡ Lightning fast!'
-    if (score >= 40) return '💪 Solid tapping!'
-    if (score >= 20) return '👍 Not bad!'
-    return '😅 Keep practicing!'
+    if (score >= 100) return '🔥 INSANE! YOU MIGHT BE A ROBOT!'
+    if (score >= 80) return '🚀 SUPERHUMAN SPEED!'
+    if (score >= 60) return '⚡ LIGHTNING FAST!'
+    if (score >= 40) return '💪 SOLID TAPPING!'
+    if (score >= 20) return '👍 NOT BAD!'
+    return '😅 KEEP PRACTICING!'
   }
 
-  // Confetti effect for high scores
-  useEffect(() => {
-    if (score >= 60) {
-      // Simple confetti animation
-      const container = document.querySelector('.results-screen')
-      if (!container) return
+  const getMedal = () => {
+    if (score >= 100) return '🏆'
+    if (score >= 80) return '🥇'
+    if (score >= 60) return '🥈'
+    if (score >= 40) return '🥉'
+    return '🎯'
+  }
 
-      for (let i = 0; i < 30; i++) {
-        const confetti = document.createElement('div')
-        confetti.style.cssText = `
-          position: fixed;
-          width: 10px;
-          height: 10px;
-          background: ${['#6c5ce7', '#00b894', '#fdcb6e', '#ff6b6b', '#a29bfe'][Math.floor(Math.random() * 5)]};
-          left: ${Math.random() * 100}vw;
-          top: -10px;
-          border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-          animation: fall ${2 + Math.random() * 3}s linear forwards;
-          pointer-events: none;
-          z-index: 100;
-        `
-        document.body.appendChild(confetti)
-        setTimeout(() => confetti.remove(), 5000)
+  // Confetti for high scores
+  useEffect(() => {
+    if (score >= 40) {
+      setShowConfetti(true)
+      const colors = ['#8b5cf6', '#3b82f6', '#ec4899', '#f59e0b', '#10b981', '#ef4444']
+      
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div')
+          confetti.className = 'confetti'
+          confetti.style.cssText = `
+            left: ${Math.random() * 100}vw;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            width: ${8 + Math.random() * 8}px;
+            height: ${8 + Math.random() * 8}px;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+            animation-duration: ${2 + Math.random() * 2}s;
+          `
+          document.body.appendChild(confetti)
+          setTimeout(() => confetti.remove(), 4000)
+        }, i * 30)
       }
     }
   }, [score])
 
   return (
     <div className="results-screen">
+      {/* Medal */}
+      <div style={{ fontSize: '4rem', animation: 'scoreReveal 0.5s ease-out' }}>
+        {getMedal()}
+      </div>
+
       {/* Score */}
       <div className="results-score">{score}</div>
+
+      {/* Message */}
       <div className="results-message">{getMessage()}</div>
 
+      {/* Best Score */}
       {isNewBest && (
         <div className="results-best">
-          🏆 New Personal Best!
+          🏆 NEW PERSONAL BEST!
         </div>
       )}
 
       {!isNewBest && bestScore > 0 && (
-        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          Best: {bestScore} | Games: {Math.round((bestScore / Math.max(score, 1))) || 1}+
+        <div style={{ 
+          color: 'var(--text-muted)', 
+          fontSize: '0.9rem',
+          fontFamily: "'Orbitron', monospace"
+        }}>
+          BEST: {bestScore}
         </div>
       )}
 
-      {/* Challenge result */}
+      {/* Challenge Result */}
       {challenge && (
         <div style={{
-          padding: '12px 20px',
+          padding: '16px 24px',
           background: score > challenge.challenger_score
-            ? 'rgba(0, 184, 148, 0.2)'
-            : 'rgba(255, 107, 107, 0.2)',
-          borderRadius: 12,
-          border: `1px solid ${score > challenge.challenger_score ? 'var(--success)' : 'var(--danger)'}`
+            ? 'rgba(16, 185, 129, 0.2)'
+            : 'rgba(239, 68, 68, 0.2)',
+          borderRadius: 14,
+          border: `1px solid ${score > challenge.challenger_score ? 'var(--neon-green)' : 'var(--neon-red)'}`,
+          backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>
-            {score > challenge.challenger_score ? '🏆 Victory!' : '💀 Defeated!'}
+          <div style={{ 
+            fontFamily: "'Orbitron', monospace",
+            fontWeight: 700, 
+            marginBottom: 8,
+            fontSize: '1.1rem'
+          }}>
+            {score > challenge.challenger_score ? '🏆 VICTORY!' : '💀 DEFEATED!'}
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <div style={{ 
+            fontSize: '0.9rem', 
+            color: 'var(--text-secondary)',
+            fontFamily: "'Orbitron', monospace"
+          }}>
             {challenge.challenger_name}: {challenge.challenger_score} | You: {score}
           </div>
         </div>
@@ -84,22 +112,22 @@ function ResultsScreen({ score, bestScore, onPlayAgain, onShareChallenge, onShow
       {/* Action Buttons */}
       <div className="results-buttons">
         <button className="btn btn-primary" onClick={onPlayAgain}>
-          🔄 Play Again
+          🔄 PLAY AGAIN
         </button>
 
         <button className="btn btn-success" onClick={onShareChallenge}>
-          📤 Challenge a Friend
+          📤 CHALLENGE A FRIEND
         </button>
 
         <button className="btn btn-outline" onClick={onShowLeaderboard}>
-          🏆 Leaderboard
+          🏆 LEADERBOARD
         </button>
       </div>
 
-      {/* Taunt button for challenge wins */}
+      {/* Taunt Button */}
       {challenge && score > challenge.challenger_score && (
         <button
-          className="btn btn-danger"
+          className="btn btn-fire"
           onClick={async () => {
             const msg = `😂 I just beat your score of ${challenge.challenger_score} with ${score} taps! Can you do better?`
             if (navigator.share) {
@@ -110,17 +138,17 @@ function ResultsScreen({ score, bestScore, onPlayAgain, onShareChallenge, onShow
               setTimeout(() => setCopied(false), 2000)
             }
           }}
-          style={{ marginTop: 8, width: '100%', maxWidth: 300 }}
+          style={{ marginTop: 8, width: '100%', maxWidth: 320 }}
         >
-          😈 Taunt {challenge.challenger_name}
+          😈 TAUNT {challenge.challenger_name}
         </button>
       )}
 
-      {/* Share score card */}
+      {/* Copy Score */}
       <button
         className="btn btn-outline"
         onClick={async () => {
-          const text = `🎯 Tap Clash\n\nI scored ${score} taps in 10 seconds!\n${isNewBest ? '🏆 New Personal Best!' : `My best: ${bestScore}`}\n\nCan you beat me?`
+          const text = `🎯 TAP CLASH\n\nI scored ${score} taps in 10 seconds!\n${isNewBest ? '🏆 New Personal Best!' : `My best: ${bestScore}`}\n\nCan you beat me?`
           if (navigator.share) {
             await navigator.share({ text })
           } else {
@@ -129,9 +157,9 @@ function ResultsScreen({ score, bestScore, onPlayAgain, onShareChallenge, onShow
             setTimeout(() => setCopied(false), 2000)
           }
         }}
-        style={{ width: '100%', maxWidth: 300 }}
+        style={{ width: '100%', maxWidth: 320 }}
       >
-        {copied ? '✅ Copied!' : '📋 Copy Score'}
+        {copied ? '✅ COPIED!' : '📋 COPY SCORE'}
       </button>
     </div>
   )

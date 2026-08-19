@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 
-const GAME_DURATION = 10 // seconds
+const GAME_DURATION = 10
+const COMBO_THRESHOLD = 300 // ms between taps to maintain combo
 
 function GameScreen({ onEnd, challenge }) {
   const [score, setScore] = useState(0)
@@ -8,7 +9,11 @@ function GameScreen({ onEnd, challenge }) {
   const [gameStarted, setGameStarted] = useState(false)
   const [countdown, setCountdown] = useState(3)
   const [popups, setPopups] = useState([])
-  const [ripples, setRipples] = useState([])
+  const [particles, setParticles] = useState([])
+  const [combo, setCombo] = useState(0)
+  const [isShaking, setIsShaking] = useState(false)
+  const [scorePulse, setScorePulse] = useState(false)
+
   const gameRef = useRef(null)
   const startTimeRef = useRef(null)
   const timerRef = useRef(null)
@@ -16,8 +21,9 @@ function GameScreen({ onEnd, challenge }) {
   const popupIdRef = useRef(0)
   const onEndRef = useRef(onEnd)
   const endedRef = useRef(false)
+  const lastTapTime = useRef(0)
+  const comboRef = useRef(0)
 
-  // Keep onEnd ref updated
   useEffect(() => {
     onEndRef.current = onEnd
   }, [onEnd])
@@ -32,7 +38,6 @@ function GameScreen({ onEnd, challenge }) {
       startTimeRef.current = Date.now()
       endedRef.current = false
 
-      // Start the game timer
       timerRef.current = setInterval(() => {
         const elapsed = (Date.now() - startTimeRef.current) / 1000
         const remaining = Math.max(0, GAME_DURATION - elapsed)
@@ -42,7 +47,6 @@ function GameScreen({ onEnd, challenge }) {
           endedRef.current = true
           clearInterval(timerRef.current)
           timerRef.current = null
-          // Use ref for latest score
           onEndRef.current(scoreRef.current)
         }
       }, 50)
@@ -56,39 +60,75 @@ function GameScreen({ onEnd, challenge }) {
     }
   }, [countdown, gameStarted])
 
+  const createParticles = useCallback((x, y) => {
+    const colors = ['#8b5cf6', '#3b82f6', '#ec4899', '#f59e0b', '#10b981']
+    const newParticles = []
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2
+      const velocity = 60 + Math.random() * 40
+      newParticles.push({
+        id: popupIdRef.current++,
+        x,
+        y,
+        tx: Math.cos(angle) * velocity,
+        ty: Math.sin(angle) * velocity,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      })
+    }
+    setParticles(prev => [...prev, ...newParticles])
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.includes(p)))
+    }, 600)
+  }, [])
+
   const handleTap = useCallback((e) => {
     if (!gameStarted || timeLeft <= 0) return
 
-    // Prevent rapid double-taps
     const now = Date.now()
     if (gameRef.current && now - gameRef.current < 30) return
     gameRef.current = now
 
-    // Update both state and ref
+    // Update score
     const newScore = scoreRef.current + 1
     scoreRef.current = newScore
     setScore(newScore)
 
-    // Add score popup
-    const id = popupIdRef.current++
+    // Score pulse animation
+    setScorePulse(true)
+    setTimeout(() => setScorePulse(false), 100)
+
+    // Combo system
+    if (now - lastTapTime.current < COMBO_THRESHOLD) {
+      comboRef.current += 1
+    } else {
+      comboRef.current = 1
+    }
+    lastTapTime.current = now
+    setCombo(comboRef.current)
+
+    // Screen shake on high combo
+    if (comboRef.current >= 10 && comboRef.current % 5 === 0) {
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 150)
+    }
+
+    // Get tap position
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX ? e.clientX - rect.left : rect.width / 2
     const y = e.clientY ? e.clientY - rect.top : rect.height / 2
 
+    // Score popup
+    const id = popupIdRef.current++
     setPopups(prev => [...prev, { id, x, y }])
     setTimeout(() => {
       setPopups(prev => prev.filter(p => p.id !== id))
-    }, 500)
+    }, 800)
 
-    // Add ripple effect
-    const rippleId = id
-    setRipples(prev => [...prev, { id: rippleId, x, y }])
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== rippleId))
-    }, 300)
-  }, [gameStarted, timeLeft])
+    // Particle burst
+    createParticles(x, y)
+  }, [gameStarted, timeLeft, createParticles])
 
-  // Handle keyboard/spacebar tapping
+  // Keyboard support
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space' || e.code === 'Enter') {
@@ -101,37 +141,55 @@ function GameScreen({ onEnd, challenge }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Check if challenge is beat
   const beatChallenge = challenge && score > challenge.challenger_score
 
+  // Countdown screen
   if (!gameStarted) {
     return (
       <div className="game-screen">
         <div style={{
-          fontSize: '8rem',
+          fontSize: '10rem',
+          fontFamily: "'Orbitron', monospace",
           fontWeight: 900,
-          color: countdown > 0 ? 'var(--primary-light)' : 'var(--success)',
-          animation: 'pulse 0.5s ease-in-out'
+          color: countdown > 0 ? 'var(--neon-purple)' : 'var(--neon-green)',
+          textShadow: countdown > 0 
+            ? '0 0 60px rgba(139, 92, 246, 0.8)' 
+            : '0 0 60px rgba(16, 185, 129, 0.8)',
+          animation: 'countdownPop 0.5s ease-out'
         }}>
           {countdown > 0 ? countdown : 'GO!'}
         </div>
+        <style>{`
+          @keyframes countdownPop {
+            0% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div className="game-screen">
+    <div className={`game-screen ${isShaking ? 'shake' : ''}`}>
       {/* Challenge progress */}
       {challenge && (
         <div style={{
           textAlign: 'center',
-          padding: '8px 16px',
-          background: beatChallenge ? 'rgba(0, 184, 148, 0.2)' : 'rgba(255, 107, 107, 0.2)',
-          borderRadius: 8,
-          border: `1px solid ${beatChallenge ? 'var(--success)' : 'var(--danger)'}`
+          padding: '10px 20px',
+          background: beatChallenge ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+          borderRadius: 12,
+          border: `1px solid ${beatChallenge ? 'var(--neon-green)' : 'var(--neon-red)'}`,
+          backdropFilter: 'blur(10px)'
         }}>
-          <span style={{ fontSize: '0.85rem' }}>
-            {beatChallenge ? '🎉 You\'re winning!' : `Need ${challenge.challenger_score + 1 - score > 0 ? challenge.challenger_score + 1 - score : 0} more to beat ${challenge.challenger_name}`}
+          <span style={{ 
+            fontSize: '0.9rem', 
+            fontFamily: "'Orbitron', monospace",
+            fontWeight: 600 
+          }}>
+            {beatChallenge 
+              ? '🎉 You\'re winning!' 
+              : `Need ${Math.max(0, challenge.challenger_score + 1 - score)} more to beat ${challenge.challenger_name}`}
           </span>
         </div>
       )}
@@ -141,8 +199,13 @@ function GameScreen({ onEnd, challenge }) {
         {timeLeft}s
       </div>
 
+      {/* Combo Display */}
+      <div className={`combo-display ${combo >= 5 ? 'active' : ''} ${combo >= 15 ? 'fire' : ''}`}>
+        {combo >= 5 && `🔥 ${combo}x COMBO`}
+      </div>
+
       {/* Score */}
-      <div className="score-display">
+      <div className={`score-display ${scorePulse ? 'pulse' : ''}`}>
         {score}
       </div>
 
@@ -154,7 +217,7 @@ function GameScreen({ onEnd, challenge }) {
           disabled={timeLeft <= 0}
         >
           <span className="tap-icon">👆</span>
-          <span>TAP!</span>
+          <span className="tap-text">TAP!</span>
 
           {/* Score popups */}
           {popups.map(popup => (
@@ -167,20 +230,17 @@ function GameScreen({ onEnd, challenge }) {
             </span>
           ))}
 
-          {/* Ripple effects */}
-          {ripples.map(ripple => (
+          {/* Particles */}
+          {particles.map(p => (
             <span
-              key={ripple.id}
+              key={p.id}
+              className="tap-particle"
               style={{
-                position: 'absolute',
-                left: ripple.x - 20,
-                top: ripple.y - 20,
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                border: '2px solid rgba(255,255,255,0.6)',
-                animation: 'ripple 0.3s ease-out',
-                pointerEvents: 'none'
+                left: p.x,
+                top: p.y,
+                background: p.color,
+                '--tx': `${p.tx}px`,
+                '--ty': `${p.ty}px`
               }}
             />
           ))}
@@ -189,11 +249,12 @@ function GameScreen({ onEnd, challenge }) {
 
       {/* Instructions */}
       <div style={{
-        color: 'var(--text-secondary)',
-        fontSize: '0.8rem',
-        textAlign: 'center'
+        color: 'var(--text-muted)',
+        fontSize: '0.85rem',
+        fontFamily: "'Orbitron', monospace",
+        letterSpacing: '1px'
       }}>
-        Tap as fast as you can! 🚀
+        TAP AS FAST AS YOU CAN 🚀
       </div>
     </div>
   )

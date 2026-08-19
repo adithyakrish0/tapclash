@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
 
-// Vercel serverless functions are at the same domain under /api
 const API_BASE = ''
 
 function Leaderboard({ onBack, userId }) {
   const [leaderboard, setLeaderboard] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('all') // all, friends, recent
 
   useEffect(() => {
     fetchLeaderboard()
@@ -42,7 +40,7 @@ function Leaderboard({ onBack, userId }) {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Loading leaderboard...
+        <span style={{ fontFamily: "'Orbitron', monospace" }}>LOADING...</span>
       </div>
     )
   }
@@ -50,50 +48,41 @@ function Leaderboard({ onBack, userId }) {
   return (
     <>
       <div className="header">
-        <h1>🏆 Leaderboard</h1>
-      </div>
-
-      <div className="tabs">
-        <button
-          className={`tab ${tab === 'all' ? 'active' : ''}`}
-          onClick={() => setTab('all')}
-        >
-          Global
-        </button>
-        <button
-          className={`tab ${tab === 'recent' ? 'active' : ''}`}
-          onClick={() => setTab('recent')}
-        >
-          Recent
-        </button>
+        <h1>🏆 LEADERBOARD</h1>
+        <p className="subtitle">GLOBAL RANKINGS</p>
       </div>
 
       <div className="leaderboard">
         {leaderboard.length === 0 ? (
           <div style={{
             textAlign: 'center',
-            padding: '40px 20px',
+            padding: '60px 20px',
             color: 'var(--text-secondary)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🎯</div>
-            <div>No scores yet!</div>
-            <div style={{ fontSize: '0.85rem', marginTop: 8 }}>
+            <div style={{ fontSize: '4rem', marginBottom: 20 }}>🎯</div>
+            <div style={{
+              fontFamily: "'Orbitron', monospace",
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              marginBottom: 8
+            }}>NO SCORES YET!</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Be the first to play and claim the top spot.
             </div>
           </div>
         ) : (
           <div className="leaderboard-list">
-            {leaderboard.map((entry, index) => (
+            {leaderboard.map((entry) => (
               <div
                 key={entry.user_id}
                 className="leaderboard-item"
                 style={{
                   background: entry.user_id === userId
-                    ? 'rgba(108, 92, 231, 0.2)'
+                    ? 'rgba(139, 92, 246, 0.2)'
                     : 'var(--bg-card)',
                   border: entry.user_id === userId
-                    ? '1px solid var(--primary)'
-                    : '1px solid transparent'
+                    ? '1px solid rgba(139, 92, 246, 0.5)'
+                    : '1px solid rgba(255, 255, 255, 0.05)'
                 }}
               >
                 <div className={`leaderboard-rank ${getRankClass(entry.rank)}`}>
@@ -102,12 +91,14 @@ function Leaderboard({ onBack, userId }) {
                 <div className="leaderboard-name">
                   {entry.username}
                   {entry.user_id === userId && (
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      color: 'var(--primary-light)',
-                      marginLeft: 8
+                    <span style={{
+                      fontSize: '0.7rem',
+                      color: 'var(--neon-purple)',
+                      marginLeft: 8,
+                      fontFamily: "'Orbitron', monospace",
+                      fontWeight: 700
                     }}>
-                      (You)
+                      (YOU)
                     </span>
                   )}
                 </div>
@@ -125,7 +116,7 @@ function Leaderboard({ onBack, userId }) {
         onClick={onBack}
         style={{ marginTop: 16, width: '100%' }}
       >
-        ← Back to Game
+        ← BACK TO GAME
       </button>
     </>
   )

@@ -1,20 +1,60 @@
+/* ============================================
+   TAP CLASH - AAA Visual Overhaul
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --primary: #6c5ce7;
-  --primary-light: #a29bfe;
-  --danger: #ff6b6b;
-  --success: #00b894;
-  --warning: #fdcb6e;
-  --bg-dark: #0a0a0a;
-  --bg-card: #1a1a2e;
+  /* Premium Color Palette */
+  --bg-deep: #050510;
+  --bg-dark: #0a0a1a;
+  --bg-card: rgba(15, 15, 40, 0.8);
+  --bg-card-hover: rgba(25, 25, 60, 0.9);
+  
+  /* Neon Colors */
+  --neon-purple: #8b5cf6;
+  --neon-blue: #3b82f6;
+  --neon-cyan: #06b6d4;
+  --neon-pink: #ec4899;
+  --neon-green: #10b981;
+  --neon-yellow: #f59e0b;
+  --neon-orange: #f97316;
+  --neon-red: #ef4444;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  --gradient-fire: linear-gradient(135deg, #f97316, #ef4444);
+  --gradient-gold: linear-gradient(135deg, #f59e0b, #f97316);
+  --gradient-success: linear-gradient(135deg, #10b981, #06b6d4);
+  --gradient-danger: linear-gradient(135deg, #ef4444, #ec4899);
+  --gradient-cosmic: linear-gradient(135deg, #8b5cf6, #ec4899, #3b82f6);
+  
+  /* Text */
   --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  
+  /* Shadows */
+  --shadow-neon: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  --shadow-fire: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(249, 115, 22, 0.3);
+  --shadow-gold: 0 0 20px rgba(245, 158, 11, 0.5), 0 0 40px rgba(245, 158, 11, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--bg-dark);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-deep);
   min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text-primary);
 }
 
+/* Animated Background */
 .app {
   min-height: 100vh;
   display: flex;
@@ -22,96 +62,311 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Header */
+.app::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 8s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Floating Particles Background */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--neon-purple);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
 .header {
   text-align: center;
   padding: 20px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .header h1 {
-  font-size: 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  font-family: 'Orbitron', monospace;
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: var(--gradient-cosmic);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 4px;
+  text-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
+  letter-spacing: 2px;
+  animation: titleGlow 2s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
 }
 
 .header .subtitle {
   color: var(--text-secondary);
   font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 4px;
+  letter-spacing: 1px;
 }
 
-/* Game Screen */
+/* ============================================
+   GAME SCREEN
+   ============================================ */
 .game-screen {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
+/* Screen Shake */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, -1px); }
+  20% { transform: translate(2px, 1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, 2px); }
+  60% { transform: translate(2px, -1px); }
+  70% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 1px); }
+  90% { transform: translate(-1px, 1px); }
+}
+
+.shake {
+  animation: screenShake 0.15s ease-in-out;
+}
+
+/* Score Display */
 .score-display {
-  font-size: 4rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 5rem;
   font-weight: 900;
-  color: var(--primary-light);
-  text-shadow: 0 0 30px rgba(108, 92, 231, 0.5);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 60px rgba(139, 92, 246, 0.6);
+  transition: transform 0.1s ease-out;
+  position: relative;
 }
 
+.score-display.pulse {
+  transform: scale(1.1);
+}
+
+/* Timer */
 .timer {
-  font-size: 2rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-secondary);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
 }
 
 .timer.urgent {
-  color: var(--danger);
-  animation: pulse 0.5s ease-in-out infinite;
+  color: var(--neon-red);
+  animation: timerPulse 0.5s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
 }
 
-@keyframes pulse {
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Combo Display */
+.combo-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.combo-display.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.combo-display.fire {
+  color: var(--neon-orange);
+  animation: comboFire 0.3s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(249, 115, 22, 0.8);
+}
+
+@keyframes comboFire {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
 }
 
+/* Tap Button */
 .tap-button {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: var(--gradient-primary);
   color: white;
   font-size: 1.5rem;
   font-weight: 700;
+  font-family: 'Orbitron', monospace;
   cursor: pointer;
-  box-shadow: 0 0 40px rgba(108, 92, 231, 0.4);
-  transition: transform 0.1s;
+  box-shadow: 
+    0 0 40px rgba(139, 92, 246, 0.4),
+    0 0 80px rgba(139, 92, 246, 0.2),
+    inset 0 0 30px rgba(255, 255, 255, 0.1);
+  transition: all 0.1s ease-out;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tap-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .tap-button:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 60px rgba(108, 92, 231, 0.6);
+  transform: scale(0.92);
+  box-shadow: 
+    0 0 60px rgba(139, 92, 246, 0.6),
+    0 0 100px rgba(139, 92, 246, 0.3),
+    inset 0 0 40px rgba(255, 255, 255, 0.15);
+}
+
+.tap-button:active::before {
+  opacity: 1;
 }
 
 .tap-button.disabled {
-  background: #333;
+  background: linear-gradient(135deg, #333, #444);
   box-shadow: none;
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .tap-button .tap-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
-/* Start Screen */
+.tap-button .tap-text {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  animation: rippleExpand 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes rippleExpand {
+  0% { width: 0; height: 0; opacity: 1; }
+  100% { width: 200px; height: 200px; opacity: 0; }
+}
+
+/* Score Popup */
+.score-popup {
+  position: absolute;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+  animation: scoreFloat 0.8s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes scoreFloat {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+
+/* Particles on Tap */
+.tap-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleBurst 0.6s ease-out forwards;
+}
+
+@keyframes particleBurst {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* ============================================
+   START SCREEN
+   ============================================ */
 .start-screen {
   flex: 1;
   display: flex;
@@ -119,27 +374,137 @@ body {
   align-items: center;
   justify-content: center;
   gap: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.start-stats {
+  text-align: center;
+  padding: 24px 32px;
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-neon);
+}
+
+.start-stats .stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 3rem;
+  font-weight: 900;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.start-stats .stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.start-stats .stat-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
 }
 
 .start-button {
-  padding: 16px 48px;
+  padding: 20px 60px;
   border: none;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: var(--gradient-primary);
   color: white;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
+  font-family: 'Orbitron', monospace;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-neon);
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.start-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .start-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 30px rgba(108, 92, 231, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 10px 40px rgba(139, 92, 246, 0.4);
 }
 
-/* Results Screen */
+.start-button:hover::before {
+  left: 100%;
+}
+
+.start-button:active {
+  transform: translateY(-1px);
+}
+
+.start-description {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+/* Challenge Banner */
+.challenge-banner {
+  background: var(--gradient-fire);
+  border-radius: 16px;
+  padding: 20px 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-fire);
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.05) 10px,
+    rgba(255, 255, 255, 0.05) 20px
+  );
+}
+
+.challenge-banner h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.challenge-banner .vs-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.5rem;
+  font-weight: 900;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   RESULTS SCREEN
+   ============================================ */
 .results-screen {
   flex: 1;
   display: flex;
@@ -148,26 +513,40 @@ body {
   justify-content: center;
   gap: 24px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .results-score {
-  font-size: 5rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 6rem;
   font-weight: 900;
-  background: linear-gradient(135deg, var(--warning), #f39c12);
+  background: var(--gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: 0 0 60px rgba(245, 158, 11, 0.6);
+  animation: scoreReveal 0.8s ease-out;
+}
+
+@keyframes scoreReveal {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .results-message {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .results-best {
   font-size: 1rem;
-  color: var(--success);
+  color: var(--neon-green);
   font-weight: 600;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 .results-buttons {
@@ -175,98 +554,162 @@ body {
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-width: 300px;
+  max-width: 320px;
 }
 
+/* Buttons */
 .btn {
-  padding: 14px 24px;
+  padding: 16px 28px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: 'Orbitron', monospace;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: var(--gradient-primary);
   color: white;
+  box-shadow: var(--shadow-neon);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success), #00cec9);
+  background: var(--gradient-success);
   color: white;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
-.btn-danger {
-  background: linear-gradient(135deg, var(--danger), #ee5a24);
+.btn-fire {
+  background: var(--gradient-fire);
   color: white;
+  box-shadow: var(--shadow-fire);
 }
 
 .btn-outline {
   background: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary-light);
+  border: 2px solid var(--neon-purple);
+  color: var(--neon-purple);
 }
 
-/* Leaderboard */
+.btn-outline:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+/* ============================================
+   LEADERBOARD
+   ============================================ */
 .leaderboard {
   padding: 16px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .leaderboard h2 {
   text-align: center;
   margin-bottom: 16px;
-  font-size: 1.3rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
 }
 
 .leaderboard-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 18px;
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: slideIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.leaderboard-item:nth-child(1) { animation-delay: 0.1s; }
+.leaderboard-item:nth-child(2) { animation-delay: 0.15s; }
+.leaderboard-item:nth-child(3) { animation-delay: 0.2s; }
+.leaderboard-item:nth-child(4) { animation-delay: 0.25s; }
+.leaderboard-item:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .leaderboard-rank {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Orbitron', monospace;
   font-weight: 700;
   font-size: 0.9rem;
-  background: var(--primary);
+  background: var(--gradient-primary);
   color: white;
 }
 
-.leaderboard-rank.gold { background: linear-gradient(135deg, #f39c12, #e67e22); }
-.leaderboard-rank.silver { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
-.leaderboard-rank.bronze { background: linear-gradient(135deg, #e67e22, #d35400); }
+.leaderboard-rank.gold { 
+  background: var(--gradient-gold); 
+  box-shadow: var(--shadow-gold);
+}
+
+.leaderboard-rank.silver { 
+  background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+  box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
+}
+
+.leaderboard-rank.bronze { 
+  background: linear-gradient(135deg, #cd7f32, #b87333);
+  box-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
+}
 
 .leaderboard-name {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .leaderboard-score {
+  font-family: 'Orbitron', monospace;
   font-weight: 700;
-  color: var(--primary-light);
+  font-size: 1.1rem;
+  color: var(--neon-purple);
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
 /* Tabs */
@@ -278,61 +721,57 @@ body {
 
 .tab {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--bg-card);
   color: var(--text-secondary);
+  font-family: 'Orbitron', monospace;
   font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .tab.active {
-  background: var(--primary);
+  background: var(--gradient-primary);
   color: white;
+  box-shadow: var(--shadow-neon);
 }
 
-/* Challenge Banner */
-.challenge-banner {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.challenge-banner h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
-.challenge-banner .vs-score {
-  font-size: 2rem;
-  font-weight: 900;
-}
-
-/* Animations */
-@keyframes scoreUp {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-40px); opacity: 0; }
-}
-
-.score-popup {
-  position: absolute;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--warning);
-  animation: scoreUp 0.5s ease-out forwards;
+/* ============================================
+   CONFETTI
+   ============================================ */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confettiFall linear forwards;
   pointer-events: none;
+  z-index: 1000;
 }
 
-/* Loading */
+@keyframes confettiFall {
+  0% { 
+    transform: translateY(0) rotate(0deg); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translateY(100vh) rotate(720deg); 
+    opacity: 0; 
+  }
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
 .loading {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100vh;
+  font-family: 'Orbitron', monospace;
   font-size: 1.2rem;
   color: var(--text-secondary);
 }
@@ -341,7 +780,7 @@ body {
   width: 40px;
   height: 40px;
   border: 3px solid var(--bg-card);
-  border-top-color: var(--primary);
+  border-top-color: var(--neon-purple);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 12px;
@@ -349,4 +788,14 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 400px) {
+  .header h1 { font-size: 2rem; }
+  .score-display { font-size: 4rem; }
+  .tap-button { width: 180px; height: 180px; }
+  .results-score { font-size: 5rem; }
 }
